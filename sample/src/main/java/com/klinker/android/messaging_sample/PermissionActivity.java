@@ -40,7 +40,8 @@ public class PermissionActivity extends Activity {
                 Manifest.permission.RECEIVE_MMS,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.CHANGE_NETWORK_STATE
+                Manifest.permission.CHANGE_NETWORK_STATE,
+                Manifest.permission.INTERNET
         }, 0);
     }
 

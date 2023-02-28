@@ -17,6 +17,6 @@
 
 <resources>
 
-    <string name="app_name">Android Messaging</string>
+    <string name="app_name">Sms BroadcastReceiver</string>
 
 </resources>
