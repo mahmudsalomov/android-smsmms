@@ -177,18 +177,24 @@ public class MainActivity extends Activity{
                                         idTextView.setText(String.valueOf(person.getId()));
                                         idTextView.setBackgroundResource(R.drawable.border);
                                         idTextView.setPadding(dpToPx(8), dpToPx(8), dpToPx(4), dpToPx(8));
+                                        idTextView.setLongClickable(true);
+                                        idTextView.setTextIsSelectable(true);
                                         row.addView(idTextView);
 
                                         TextView nameTextView = new TextView(context);
                                         nameTextView.setText(person.getHex());
                                         nameTextView.setBackgroundResource(R.drawable.border);
                                         nameTextView.setPadding(dpToPx(8), dpToPx(8), dpToPx(4), dpToPx(8));
+                                        nameTextView.setLongClickable(true);
+                                        nameTextView.setTextIsSelectable(true);
                                         row.addView(nameTextView);
 
                                         TextView ageTextView = new TextView(context);
                                         ageTextView.setText(String.valueOf(person.getCreatedAt()));
                                         ageTextView.setBackgroundResource(R.drawable.border);
                                         ageTextView.setPadding(dpToPx(8), dpToPx(8), dpToPx(4), dpToPx(8));
+                                        ageTextView.setLongClickable(true);
+                                        ageTextView.setTextIsSelectable(true);
                                         row.addView(ageTextView);
 
                                         tableLayout.addView(row);
