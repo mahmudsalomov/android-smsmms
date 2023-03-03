@@ -59,9 +59,17 @@
 
         <receiver
             android:name=".SmsReceiver"
-            android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter>
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            android:permission="android.permission.BROADCAST_SMS"
+            android:enabled="true"
+            android:exported="true">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.provider.Telephony.SMS_RECEIVED" />-->
+<!--            </intent-filter>-->
+            <intent-filter android:priority="10">
+                <action android:name="android.intent.action.DATA_SMS_RECEIVED" />
+                <data
+                    android:host="*"
+                    android:scheme="sms" />
             </intent-filter>
         </receiver>
 
