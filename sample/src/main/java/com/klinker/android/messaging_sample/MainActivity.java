@@ -18,6 +18,7 @@ package com.klinker.android.messaging_sample;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -30,6 +31,7 @@ import android.provider.Telephony;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.text.TextUtils;
 import android.view.View;
@@ -41,8 +43,14 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+//import com.android.i18n.phonenumbers.NumberParseException;
+//import com.android.i18n.phonenumbers.PhoneNumberUtil;
+//import com.android.i18n.phonenumbers.Phonenumber;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
 import com.klinker.android.logger.Log;
 import com.klinker.android.logger.OnLogListener;
 import com.klinker.android.send_message.ApnUtils;
@@ -69,7 +77,6 @@ public class MainActivity extends Activity{
 
     private Button setDefaultAppButton;
     private Button selectApns;
-    private Button all;
     private EditText fromField;
     private EditText toField;
     private EditText messageField;
@@ -105,7 +112,9 @@ public class MainActivity extends Activity{
         setContentView(R.layout.activity_main);
         context = this;
 
-        all=findViewById(R.id.button);
+        Button all = findViewById(R.id.button);
+        Button sendBinary = findViewById(R.id.send_binary);
+        Button sendText = findViewById(R.id.send_text);
 
         initSettings();
         initViews();
@@ -210,6 +219,22 @@ public class MainActivity extends Activity{
         });
 
 
+
+        sendBinary.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendBinarySMS(view);
+            }
+        });
+
+        sendText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendTextSMS(view);
+            }
+        });
+
+
 //        all.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
@@ -290,6 +315,132 @@ public class MainActivity extends Activity{
             }
         }).start();
     }
+
+
+    public void sendBinarySMS(View view) {
+        EditText phone=findViewById(R.id.phone);
+        final String number= String.valueOf(phone.getText());
+        System.out.println("Phone Number = "+phone.getText().toString());
+
+
+        if (!isValidPhoneNumber(number)){
+            Toast.makeText(context, "Invalid phone", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            String sentIntentAction = "SMS_SENT";
+            PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent(sentIntentAction), 0);
+            String deliveredIntentAction = "SMS_DELIVERED";
+            PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(deliveredIntentAction), 0);
+
+
+            // Get the default instance of SmsManager
+            SmsManager smsManager = SmsManager.getDefault();
+
+            String phoneNumber = number;
+            byte[] smsBody = "8 bit".getBytes();
+
+            short port = 1234;
+            byte[] pdu = SmsMessage.getSubmitPdu(null, phoneNumber, port, "8 bit".getBytes(), true).encodedMessage;
+            System.out.println(Arrays.toString(pdu));
+            System.out.println(SmsReceiver.bytesToHex(pdu));
+//        smsManager.senR
+            // Send a text based SMS
+            smsManager.sendDataMessage(phoneNumber, null, port, pdu, sentIntent, deliveredIntent);
+
+
+
+            // Create a BroadcastReceiver to receive the status report intent
+            BroadcastReceiver statusReportReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    String statusMessage = "";
+                    switch (getResultCode()) {
+                        case Activity.RESULT_OK:
+                            statusMessage = "SMS sent successfully";
+                            break;
+                        case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                            statusMessage = "SMS generic failure";
+                            break;
+                        case SmsManager.RESULT_ERROR_RADIO_OFF:
+                            statusMessage = "SMS radio off";
+                            break;
+                        case SmsManager.RESULT_ERROR_NULL_PDU:
+                            statusMessage = "SMS null PDU";
+                            break;
+                        case SmsManager.RESULT_ERROR_NO_SERVICE:
+                            statusMessage = "SMS no service";
+                            break;
+                    }
+                    Toast.makeText(context, statusMessage, Toast.LENGTH_SHORT).show();
+                }
+            };
+
+// Register the BroadcastReceiver to receive the status report intent
+            registerReceiver(statusReportReceiver, new IntentFilter(sentIntentAction));
+            System.out.println("Sending");
+        }
+
+
+    }
+
+    public void sendTextSMS(View view) {
+        EditText phone=findViewById(R.id.phone);
+        final String number= String.valueOf(phone.getText());
+        System.out.println("Phone Number = "+phone.getText().toString());
+
+
+        if (!isValidPhoneNumber(number)){
+            Toast.makeText(context, "Invalid phone", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            // Get the default instance of SmsManager
+            SmsManager smsManager = SmsManager.getDefault();
+
+            String phoneNumber = number;
+            String sentIntentAction = "SMS_SENT";
+            PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent(sentIntentAction), 0);
+            String deliveredIntentAction = "SMS_DELIVERED";
+            PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent(deliveredIntentAction), 0);
+
+            // Send a text based SMS
+            smsManager.sendTextMessage(phoneNumber, null, "7 bit", sentIntent, deliveredIntent);
+
+            // Create a BroadcastReceiver to receive the status report intent
+            BroadcastReceiver statusReportReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    String statusMessage = "";
+                    System.out.println(getResultData());
+//                getResultData();
+                    switch (getResultCode()) {
+                        case Activity.RESULT_OK:
+                            statusMessage = "SMS sent successfully";
+                            break;
+                        case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                            statusMessage = "SMS generic failure";
+                            break;
+                        case SmsManager.RESULT_ERROR_RADIO_OFF:
+                            statusMessage = "SMS radio off";
+                            break;
+                        case SmsManager.RESULT_ERROR_NULL_PDU:
+                            statusMessage = "SMS null PDU";
+                            break;
+                        case SmsManager.RESULT_ERROR_NO_SERVICE:
+                            statusMessage = "SMS no service";
+                            break;
+                    }
+                    Toast.makeText(context, statusMessage, Toast.LENGTH_LONG).show();
+                }
+            };
+
+// Register the BroadcastReceiver to receive the status report intent
+            registerReceiver(statusReportReceiver, new IntentFilter(sentIntentAction));
+            System.out.println("Sending text");
+        }
+
+
+    }
+
 
     private void initSettings() {
         settings = Settings.get(this);
@@ -420,4 +571,20 @@ public class MainActivity extends Activity{
         view.setText(message);
 //        this.result.setText(message);
     }
+
+
+    public boolean isValidPhoneNumber(String phoneNumber) {
+        if (TextUtils.isEmpty(phoneNumber)) {
+            return false;
+        }
+
+        PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
+        try {
+            Phonenumber.PhoneNumber parsedNumber = phoneNumberUtil.parse(phoneNumber, null);
+            return phoneNumberUtil.isValidNumber(parsedNumber);
+        } catch (NumberParseException e) {
+            return false;
+        }
+    }
+
 }

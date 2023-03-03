@@ -80,4 +80,23 @@
         android:layout_height="wrap_content"
         android:text="Get" />
 
+    <EditText
+        android:id="@+id/phone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="phone" />
+
+    <Button
+        android:id="@+id/send_binary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="send binary" />
+
+    <Button
+        android:id="@+id/send_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="send text" />
+
 </LinearLayout>
